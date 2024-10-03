@@ -30,13 +30,12 @@ CORS_ALLOW_CREDENTIALS = True
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1", ".vercel.app"]
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    "whitenoise.runserver_nostatic",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -53,7 +52,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -92,28 +90,28 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'golpokuri.wsgi.app'
+WSGI_APPLICATION = 'golpokuri.wsgi.application'
 
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres.xxieupaebbmrmaobriwc',
-        'PASSWORD': 'jcf3#KQx@p9z_vX',
-        'HOST': 'aws-0-ap-southeast-1.pooler.supabase.com',
-        'PORT': '6543'
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'postgres',
+#         'USER': 'postgres.xxieupaebbmrmaobriwc',
+#         'PASSWORD': 'jcf3#KQx@p9z_vX',
+#         'HOST': 'aws-0-ap-southeast-1.pooler.supabase.com',
+#         'PORT': '6543'
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
