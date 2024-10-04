@@ -14,11 +14,6 @@ class StoryCreateView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     def perform_create(self, serializer):
         if self.request.user.user_type == 'writer':
-            subject = 'Story Creating successful message'
-            message = f'Congratulations {self.request.user.username} your story succussfully uploaded at golpkuri'
-            email_from = settings.EMAIL_HOST_USER
-            recipient_list = [self.request.user.email]
-            send_mail( subject, message, email_from, recipient_list)
             serializer.save(writer=self.request.user)
         else:
             raise PermissionDenied({"error": "Only writers can create story"})
