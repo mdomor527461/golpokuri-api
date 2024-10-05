@@ -29,4 +29,4 @@ class CommentSerializer(serializers.ModelSerializer):
     user_name = serializers.StringRelatedField(source='user')
     class Meta:
         model = models.Comment
-        fields = ['story','user','user_name','content']
+        fields = ['user_name','content']
