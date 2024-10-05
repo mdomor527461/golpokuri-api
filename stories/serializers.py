@@ -25,3 +25,7 @@ class CategorySerializer(serializers.ModelSerializer):
         if instance.image:
             representation['image'] = instance.image.url
         return representation
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Comment
+        fields = '__all__'

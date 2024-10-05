@@ -49,6 +49,9 @@ class StoryDeleteView(generics.RetrieveDestroyAPIView):
 class CategoryListView(generics.ListAPIView):
     serializer_class = serializers.CategorySerializer
     queryset = models.Category.objects.all()
+class CommentView(generics.ListCreateAPIView):
+    serializer_class = serializers.CommentSerializer
+    queryset = models.Comment.objects.all()
 
     
 

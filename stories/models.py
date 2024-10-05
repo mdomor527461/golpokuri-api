@@ -17,3 +17,9 @@ class Story(models.Model):
 
     def __str__(self):
         return self.title
+class Comment(models.Model):
+    content = models.TextField()
+    story = models.ForeignKey(Story,on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.content
