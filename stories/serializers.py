@@ -26,6 +26,7 @@ class CategorySerializer(serializers.ModelSerializer):
             representation['image'] = instance.image.url
         return representation
 class CommentSerializer(serializers.ModelSerializer):
+    user_name = serializers.StringRelatedField(source='user')
     class Meta:
         model = models.Comment
-        fields = '__all__'
+        fields = ['story','user','user_name','content']
