@@ -1,4 +1,5 @@
 from django.db import models
+from users.models import User
 from django.conf import settings
 # Create your models here.
 class Category(models.Model):
@@ -20,6 +21,6 @@ class Story(models.Model):
 class Comment(models.Model):
     content = models.TextField()
     story = models.ForeignKey(Story,on_delete=models.CASCADE)
-
+    user = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
     def __str__(self):
         return self.content
