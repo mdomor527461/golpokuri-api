@@ -51,12 +51,14 @@ class CategoryListView(generics.ListAPIView):
     queryset = models.Category.objects.all()
 class CommentView(generics.ListCreateAPIView):
     serializer_class = serializers.CommentSerializer
-    queryset = models.Comment.objects.all()
+    
+    def get_queryset(self):
+        story_id = self.kwargs['pk']  # URL থেকে স্টোরির ID নেওয়া হচ্ছে
+        return models.Comment.objects.filter(story__id=story_id)  # নির্দিষ্ট স্টোরির কমেন্টগুলো ফিল্টার করা হচ্ছে
 
     def perform_create(self, serializer):
-        permission_classes = [IsAuthenticated]
-        story = models.Story.objects.get(pk=self.kwargs['pk'])
-        serializer.save(user=self.request.user,story=story)
+        story = models.Story.objects.get(pk=self.kwargs['pk'])  # নির্দিষ্ট স্টোরি পাওয়া হচ্ছে
+        serializer.save(user=self.request.user, story=story) 
 
     
 
