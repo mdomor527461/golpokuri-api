@@ -7,16 +7,44 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from django.conf import settings
 from django.core.mail import send_mail
+import requests
+from rest_framework.response import Response
+from rest_framework import status
 # Create your views here.
+
+IMAGEBB_API_KEY = 'bd168c98953ad999e53d8ca206d477fa'
+
 class StoryCreateView(generics.CreateAPIView):
-    queryset = models.Story.objects.all()
     serializer_class = serializers.StorySerializer
-    permission_classes = [IsAuthenticated]
-    def perform_create(self, serializer):
-        if self.request.user.user_type == 'writer':
-            serializer.save(writer=self.request.user)
-        else:
-            raise PermissionDenied({"error": "Only writers can create story"})
+    def post(self, request):
+        # প্রথমে সিরিয়ালাইজার থেকে ডাটা গ্রহণ করা
+        serializer = serializers.StorySerializer(data=request.data)
+
+        if serializer.is_valid():
+            story = serializer.save(writer=request.user)
+
+            # যদি ফাইল থাকে তবে ImageBB তে আপলোড করা হবে
+            image_file = request.FILES.get('image', None)
+            if image_file:
+                url = "https://api.imgbb.com/1/upload"
+                files = {
+                    'image': image_file,
+                }
+                data = {
+                    'key': IMAGEBB_API_KEY,
+                }
+
+                # API তে রিকুয়েস্ট পাঠানো
+                response = requests.post(url, data=data, files=files)
+
+                # যদি রিকুয়েস্ট সফল হয় তাহলে image_url আপডেট করা
+                if response.status_code == 200:
+                    image_url = response.json()['data']['url']
+                    story.image_url = image_url
+                    story.save()
+
+            return Response(serializers.StorySerializer(story).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
   
 
 class StoryListView(generics.ListAPIView):

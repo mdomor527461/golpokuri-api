@@ -5,21 +5,21 @@ class StorySerializer(serializers.ModelSerializer):
     category_name = serializers.StringRelatedField(source='category')
     class Meta:
         model = models.Story
-        fields = ['id','title','image','content','date_posted','category','category_name','writer']
+        fields = ['id','title','image_url','content','date_posted','category','category_name','writer']
 
     def get_category(self, obj):
         return obj.category.name
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        if instance.image:
-            representation['image'] = instance.image.url
-        return representation
+    # def to_representation(self, instance):
+    #     representation = super().to_representation(instance)
+    #     if instance.image:
+    #         representation['image'] = instance.image.url
+    #     return representation
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Category
         fields = '__all__'
-
+        read_only_fields = ['image_url']
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         if instance.image:
