@@ -16,15 +16,10 @@ class StorySerializer(serializers.ModelSerializer):
     #     return representation
 
 class CategorySerializer(serializers.ModelSerializer):
+    image_url = serializers.ImageField()
     class Meta:
         model = models.Category
         fields = '__all__'
-        read_only_fields = ['image_url']
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        if instance.image:
-            representation['image'] = instance.image.url
-        return representation
 class CommentSerializer(serializers.ModelSerializer):
     user_name = serializers.StringRelatedField(source='user')
     class Meta:

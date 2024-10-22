@@ -8,4 +8,5 @@ urlpatterns = [
     path('stories/edit/<int:pk>',views.StoryUpdateView.as_view(),name='update'),
     path('stories/delete/<int:pk>',views.StoryDeleteView.as_view(),name='delete'),
     path('categories/',views.CategoryListView.as_view(),name='categories'),
+    path('category/create',views.CategoryCreateView.as_view(),name='create_category'),
 ]

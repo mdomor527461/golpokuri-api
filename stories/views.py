@@ -10,12 +10,14 @@ from django.core.mail import send_mail
 import requests
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAdminUser
 # Create your views here.
 
 IMAGEBB_API_KEY = 'bd168c98953ad999e53d8ca206d477fa'
 
 class StoryCreateView(generics.CreateAPIView):
     serializer_class = serializers.StorySerializer
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         # প্রথমে সিরিয়ালাইজার থেকে ডাটা গ্রহণ করা
         serializer = serializers.StorySerializer(data=request.data)
@@ -73,7 +75,38 @@ class StoryDeleteView(generics.RetrieveDestroyAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.StorySerializer
     queryset = models.Story.objects.all()
+class CategoryCreateView(generics.CreateAPIView):
+    serializer_class = serializers.CategorySerializer
+    permission_classes = [IsAdminUser]
+    def post(self, request):
+        # প্রথমে সিরিয়ালাইজার থেকে ডাটা গ্রহণ করা
+        serializer = serializers.CategorySerializer(data=request.data)
 
+        if serializer.is_valid():
+            category = serializer.save()
+
+            # যদি ফাইল থাকে তবে ImageBB তে আপলোড করা হবে
+            image_file = request.FILES.get('image', None)
+            if image_file:
+                url = "https://api.imgbb.com/1/upload"
+                files = {
+                    'image': image_file,
+                }
+                data = {
+                    'key': IMAGEBB_API_KEY,
+                }
+
+                # API তে রিকুয়েস্ট পাঠানো
+                response = requests.post(url, data=data, files=files)
+
+                # যদি রিকুয়েস্ট সফল হয় তাহলে image_url আপডেট করা
+                if response.status_code == 200:
+                    image_url = response.json()['data']['url']
+                    category.image_url = image_url
+                    category.save()
+
+            return Response(serializers.CategorySerializer(category).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class CategoryListView(generics.ListAPIView):
     serializer_class = serializers.CategorySerializer
     queryset = models.Category.objects.all()
