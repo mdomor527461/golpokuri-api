@@ -16,7 +16,7 @@ class StorySerializer(serializers.ModelSerializer):
     #     return representation
 
 class CategorySerializer(serializers.ModelSerializer):
-    image_url = serializers.ImageField()
+    # image_url = serializers.ImageField()
     class Meta:
         model = models.Category
         fields = '__all__'
