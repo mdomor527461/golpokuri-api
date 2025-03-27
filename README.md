@@ -1,6 +1,6 @@
 # 📘 Golpokuri API Documentation
 
-**Base URL:** `https://golpokuri-qflxh2wap-omor-faruks-projects-2b598dd4.vercel.app/`
+**Base URL:** `https://golpokuri-api.vercel.app`
 
 ---
 
