@@ -58,7 +58,7 @@
 ## 📚 Stories
 
 ### 🔸 Create Story
-- **URL:** `/create/`
+- **URL:** `story/create/`
 - **Method:** `POST`
 - **Headers:** `Authorization: Token <your_token>`
 - **Body:**
@@ -73,7 +73,7 @@ image: (optional image file)
 ---
 
 ### 🔸 List Stories
-- **URL:** `/stories/`
+- **URL:** `story/stories/`
 - **Method:** `GET`
 - **Query Params (optional):**
   - `category=<category_id>`
@@ -82,20 +82,20 @@ image: (optional image file)
 ---
 
 ### 🔸 Story Detail
-- **URL:** `/stories/<id>`
+- **URL:** `story/stories/<id>`
 - **Method:** `GET`
 
 ---
 
 ### 🔸 Update Story
-- **URL:** `/stories/edit/<id>`
+- **URL:** `story/stories/edit/<id>`
 - **Method:** `PUT` or `PATCH`
 - **Headers:** `Authorization: Token <your_token>`
 
 ---
 
 ### 🔸 Delete Story
-- **URL:** `/stories/delete/<id>`
+- **URL:** `story/stories/delete/<id>`
 - **Method:** `DELETE`
 - **Headers:** `Authorization: Token <your_token>`
 
@@ -104,13 +104,13 @@ image: (optional image file)
 ## 🏷️ Categories
 
 ### 🔸 List Categories
-- **URL:** `/categories/`
+- **URL:** `story/categories/`
 - **Method:** `GET`
 
 ---
 
 ### 🔸 Create Category (Admin Only)
-- **URL:** `/category/create`
+- **URL:** `story/category/create`
 - **Method:** `POST`
 - **Headers:** `Authorization: Token <admin_token>`
 - **Body:**
@@ -124,7 +124,7 @@ image: (optional image file)
 ## 💬 Comments
 
 ### 🔸 List & Add Comment to a Story
-- **URL:** `/stories/<story_id>/comment`
+- **URL:** `story/stories/<story_id>/comment`
 - **Methods:**
   - `GET` – List comments for the story
   - `POST` – Add a comment (requires auth)
