@@ -11,6 +11,7 @@ import requests
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAdminUser
+from rest_framework import viewsets, permissions
 # Create your views here.
 
 IMAGEBB_API_KEY = 'bd168c98953ad999e53d8ca206d477fa'
@@ -61,10 +62,31 @@ class StoryListView(generics.ListAPIView):
         if category_id is not None:
             return models.Story.objects.filter(category__id = category_id)
         return models.Story.objects.all()
-class StoryDetailView(generics.RetrieveAPIView):
+
+
+class TopStoryListView(generics.ListAPIView):
     permission_classes = [AllowAny]
+    serializer_class = serializers.StorySerializer
+    
+    def get_queryset(self):
+        return models.Story.objects.order_by('-read_count')[:8]
+    
+class StoryDetailView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = models.Story.objects.all()
     serializer_class = serializers.StorySerializer
+
+    def get(self, request, *args, **kwargs):
+        response = super().get(request, *args, **kwargs)
+        story = self.get_object()
+
+        # Only count read if this user hasn't read it before
+        if request.user not in story.reader.all():
+            story.reader.add(request.user)        # Track the reader
+            story.read_count += 1
+            story.save(update_fields=['read_count'])  # Save only that field for performance
+
+        return response
 
 class StoryUpdateView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
@@ -121,7 +143,28 @@ class CommentView(generics.ListCreateAPIView):
         story = models.Story.objects.get(pk=self.kwargs['pk'])  # নির্দিষ্ট স্টোরি পাওয়া হচ্ছে
         serializer.save(user=self.request.user, story=story) 
 
-    
+
+class ReviewCreateView(generics.CreateAPIView):
+    queryset = models.Review.objects.all()
+    serializer_class = serializers.ReviewSerilizer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        story = serializer.validated_data['story']
+
+        # Check if this user already reviewed this story
+        existing_review = models.Review.objects.filter(user=user, story=story).first()
+
+        if existing_review:
+            # Update existing review
+            existing_review.rating = serializer.validated_data['rating']
+            existing_review.comment = serializer.validated_data.get('comment', '')
+            existing_review.save()
+        else:
+            # Create new review
+            serializer.save(user=user)
+
 
 
 

@@ -28,6 +28,8 @@ AUTH_USER_MODEL = 'users.User'
 SECRET_KEY = 'django-insecure-fi359p9-zomu^n^yb7tnvb9%fxodtw@(&0%&gtj!8a4xls0zq4'
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+# settings.py
+
 # CSRF_TRUSTED_ORIGINS = ['https://golpokuri-api.onrender.com','https://*.127.0.0.1']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

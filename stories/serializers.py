@@ -5,7 +5,7 @@ class StorySerializer(serializers.ModelSerializer):
     category_name = serializers.StringRelatedField(source='category')
     class Meta:
         model = models.Story
-        fields = ['id','title','image_url','content','date_posted','category','category_name','writer']
+        fields = ['id','title','image_url','content','category','category_name','writer']
 
     def get_category(self, obj):
         return obj.category.name
@@ -25,3 +25,13 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Comment
         fields = ['user_name','content']
+        
+class ReviewSerilizer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Review
+        fields = '__all__'
+        read_only_fields = ['id', 'user', 'created_at']
+        
+        def create(self, validated_data):
+            validated_data['user'] = self.context['request'].user
+            return super().create(validated_data)
