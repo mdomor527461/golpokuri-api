@@ -14,4 +14,6 @@ urlpatterns = [
     path('categories/',views.CategoryListView.as_view(),name='categories'),
     path('category/create',views.CategoryCreateView.as_view(),name='create_category'),
     path('review/create',views.ReviewCreateView.as_view(),name='create_review'),
+    path('react/', views.StoryReactCreateUpdateView.as_view(), name='story-react'),
+    path('react/delete/<int:pk>', views.StoryReactDeleteView.as_view(), name='story-react-delete'),
 ]

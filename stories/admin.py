@@ -4,6 +4,7 @@ from . import models
 admin.site.register(models.Category)
 admin.site.register(models.Comment)
 admin.site.register(models.Review)
+admin.site.register(models.StoryReact)
 @admin.register(models.Story)
 class StoryAdmin(admin.ModelAdmin):
     list_display = ('title', 'writer', 'read_count')

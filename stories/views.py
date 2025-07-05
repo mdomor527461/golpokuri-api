@@ -80,13 +80,18 @@ class StoryDetailView(generics.RetrieveAPIView):
         response = super().get(request, *args, **kwargs)
         story = self.get_object()
 
-        # Only count read if this user hasn't read it before
         if request.user not in story.reader.all():
-            story.reader.add(request.user)        # Track the reader
+            story.reader.add(request.user)
             story.read_count += 1
-            story.save(update_fields=['read_count'])  # Save only that field for performance
+            story.save(update_fields=['read_count'])
 
         return response
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
 
 class StoryUpdateView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
@@ -166,6 +171,16 @@ class ReviewCreateView(generics.CreateAPIView):
             serializer.save(user=user)
 
 
+class StoryReactCreateUpdateView(generics.CreateAPIView):
+    queryset = models.StoryReact.objects.all()
+    serializer_class = serializers.StoryReactSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class StoryReactDeleteView(generics.DestroyAPIView):
+    queryset = models.StoryReact
+    serializer_class  = serializers.StoryReactSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 
 
