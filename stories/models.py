@@ -21,49 +21,13 @@ class Story(models.Model):
     average_rating = models.IntegerField(default=0,null=True,blank=True)
     created_at = models.DateTimeField(auto_now_add=True,null=True,blank=True)
     updated_at = models.DateTimeField(auto_now=True,null=True,blank=True)
-    def update_rating(self):
-        reviews = self.reviews.all()
-        
-        if reviews.exists():
-            avg = sum([r.rating for r in reviews]) / reviews.count()
-            self.average_rating = math.ceil(avg)
-            self.total_reviews = reviews.count()
-        else:
-            self.average_rating = 0
-            self.total_reviews = 0
-            
     read_count = models.IntegerField(default=0, blank=True, null=True)
     writer = models.ForeignKey(User, related_name='stories_written', blank=True,on_delete=models.CASCADE,null=True)
     reader = models.ManyToManyField(User,related_name='readers',blank=True)
     def __str__(self):
         return self.title
-    
+   
 
-class Comment(models.Model):
-    content = models.TextField()
-    story = models.ForeignKey(Story,on_delete=models.CASCADE)
-    user = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
-    created_at = models.DateTimeField(auto_now_add=True,null=True,blank=True)
-    updated_at = models.DateTimeField(auto_now=True,null=True,blank=True)
-
-    def __str__(self):
-        return self.content
-
-class Review(models.Model):
-    story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name="reviews")
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    rating = models.IntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-
-    class Meta:
-        unique_together = ['story', 'user']  # each user can review once
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        self.story.update_rating()
-        
 class StoryReact(models.Model):
     REACT_CHOICES = [
         ('like', 'Like'),
@@ -75,6 +39,47 @@ class StoryReact(models.Model):
     story = models.ForeignKey(Story,on_delete=models.CASCADE ,  related_name='reacts')
     type = models.CharField(choices=REACT_CHOICES, max_length=10)
     reacted_at = models.DateTimeField(auto_now=True)
-
     class Meta:
-        unique_together = ['user', 'story']  # ১ user ১টা react দিতে পারবে প্রতি story-তে
+        unique_together = ['user', 'story'] 
+        
+class StoryRating(models.Model):
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    story = models.ForeignKey(Story, on_delete=models.CASCADE , related_name='ratings')
+    rating = models.IntegerField()
+    
+    
+    def __str__(self):
+        return f"{self.rating} star rated by {self.user}"
+        
+class Comment(models.Model):
+    content = models.TextField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    story = models.ForeignKey(Story, on_delete=models.CASCADE)
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Comment by {self.user.username} at {self.created_at}"
+
+
+
+class CommentReaction(models.Model):
+    REACTION_TYPES = [
+        ('like', 'Like'),
+        ('love', 'Love'),
+        ('angry', 'Angry'),
+        ('haha', 'Haha'),
+        ('wow', 'wow'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    comment = models.ForeignKey(Comment, related_name='reactions', on_delete=models.CASCADE)
+    type = models.CharField(choices=REACTION_TYPES, max_length=10)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+    def __str__(self):
+        return f"Reaction by {self.user.username} on Comment {self.comment.id}"
+

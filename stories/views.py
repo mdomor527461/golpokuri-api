@@ -12,6 +12,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAdminUser
 from rest_framework import viewsets, permissions
+import math
+from rest_framework.views import APIView
 # Create your views here.
 
 IMAGEBB_API_KEY = 'bd168c98953ad999e53d8ca206d477fa'
@@ -66,7 +68,7 @@ class StoryListView(generics.ListAPIView):
 
 class TopStoryListView(generics.ListAPIView):
     permission_classes = [AllowAny]
-    serializer_class = serializers.StorySerializer
+    serializer_class = serializers.TopStorySerializer
     
     def get_queryset(self):
         return models.Story.objects.order_by('-read_count')[:8]
@@ -137,38 +139,6 @@ class CategoryCreateView(generics.CreateAPIView):
 class CategoryListView(generics.ListAPIView):
     serializer_class = serializers.CategorySerializer
     queryset = models.Category.objects.all()
-class CommentView(generics.ListCreateAPIView):
-    serializer_class = serializers.CommentSerializer
-    
-    def get_queryset(self):
-        story_id = self.kwargs['pk']  # URL থেকে স্টোরির ID নেওয়া হচ্ছে
-        return models.Comment.objects.filter(story__id=story_id)  # নির্দিষ্ট স্টোরির কমেন্টগুলো ফিল্টার করা হচ্ছে
-
-    def perform_create(self, serializer):
-        story = models.Story.objects.get(pk=self.kwargs['pk'])  # নির্দিষ্ট স্টোরি পাওয়া হচ্ছে
-        serializer.save(user=self.request.user, story=story) 
-
-
-class ReviewCreateView(generics.CreateAPIView):
-    queryset = models.Review.objects.all()
-    serializer_class = serializers.ReviewSerilizer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def perform_create(self, serializer):
-        user = self.request.user
-        story = serializer.validated_data['story']
-
-        # Check if this user already reviewed this story
-        existing_review = models.Review.objects.filter(user=user, story=story).first()
-
-        if existing_review:
-            # Update existing review
-            existing_review.rating = serializer.validated_data['rating']
-            existing_review.comment = serializer.validated_data.get('comment', '')
-            existing_review.save()
-        else:
-            # Create new review
-            serializer.save(user=user)
 
 
 class StoryReactCreateUpdateView(generics.CreateAPIView):
@@ -182,12 +152,93 @@ class StoryReactDeleteView(generics.DestroyAPIView):
     serializer_class  = serializers.StoryReactSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+class CommentListCreateView(generics.ListCreateAPIView):
+    queryset = models.Comment.objects.all()
+    serializer_class = serializers.CommentSerializer
+    permission_classes = [IsAuthenticated]
 
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
+class CommentEditView(generics.UpdateAPIView):
+    queryset = models.Comment.objects.all()
+    serializer_class = serializers.CommentSerializer
+    permission_classes = [IsAuthenticated]
 
+    def get_object(self):
+        comment = super().get_object()
+        if comment.user != self.request.user:
+            raise PermissionError("You do not have permission to edit this comment.")
+        return comment
 
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        response.data['message'] = 'Comment updated successfully'
+        return response
+class CommentDeleteView(generics.DestroyAPIView):
+    queryset = models.Comment.objects.all()
+    serializer_class = serializers.CommentSerializer
+    permission_classes = [IsAuthenticated]
 
+    def get_object(self):
+        comment = super().get_object()
+        if comment.user != self.request.user:
+            raise PermissionError("You do not have permission to delete this comment.")
+        return comment
 
+class ReactionListCreateView(generics.ListCreateAPIView):
+    queryset = models.CommentReaction.objects.all()
+    serializer_class = serializers.ReactionSerializer
+    permission_classes = [IsAuthenticated]
 
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
+class ReactionDeleteView(generics.DestroyAPIView):
+    queryset = models.CommentReaction.objects.all()
+    serializer_class = serializers.ReactionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        reaction = super().get_object()
+        if reaction.user != self.request.user:
+            raise PermissionError("You do not have permission to delete this reaction.")
+        return reaction    
     
+
+class StoryRatingCreateView(generics.ListCreateAPIView):
+    queryset = models.StoryRating.objects.all()  # Queryset to fetch StoryRatings
+    serializer_class = serializers.StoryRatingSerializer  # Serializer for StoryRating
+    permission_classes = [IsAuthenticated]  # Ensures only authenticated users can create ratings
+
+    def perform_create(self, serializer):
+        # Check if the user has already rated the story
+        user = self.request.user
+        story = serializer.validated_data['story']  # Get the story from the validated data
+
+        # Check if a rating already exists for this user and story
+        existing_rating = models.StoryRating.objects.filter(user=user, story=story).first()
+
+        if existing_rating:
+            # If the rating already exists, update it
+            existing_rating.rating = serializer.validated_data['rating']
+            existing_rating.save()
+            story_rating = existing_rating  # Use the existing rating
+        else:
+            # Otherwise, create a new rating
+            story_rating = serializer.save(user=user)
+
+        # Update the total_reviews and average_rating after the new or updated rating
+        self.update_story_rating(story)
+
+    def update_story_rating(self, story):
+        # Update the total_reviews and average_rating after the rating is created or updated
+        story.total_reviews = story.ratings.count()  # Count the total number of ratings for this story
+        
+        # Calculate the average_rating (if there are ratings)
+        if story.total_reviews > 0:
+            total_sum = sum(rating.rating for rating in story.ratings.all())  # Sum of all ratings
+            story.average_rating = total_sum / story.total_reviews  # Calculate the average
+
+        # Save the Story instance with the updated total_reviews and average_rating
+        story.save()
